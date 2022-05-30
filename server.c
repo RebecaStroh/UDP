@@ -83,277 +83,276 @@ void deleteLine(const int line) {
 }
 
 // Opção 1: Adiciona um novo filme à lista do arquivo
-int newMovie(struct sockaddr_in new_fd, char* movie) {
-    // char buf[MAXDATASIZE];
-    // int count = 1;
-    // int n;
+int newMovie(struct sockaddr_in cliaddr, char* movie) {
+  char buf[MAXDATASIZE];
+  int count = 1;
+  int n;
 
-    // file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
-    // FILE *temp = fopen(TEMPFILENAME, "w"); // Cria um arquivo auxiliar e o abre como escrita
-    // while ((fgets(buf, MAXDATASIZE, file)) != NULL) { // Le cada linha do arquivo
-    //     if (count == 1) { // Aumenta a quantidade de filmes no arquivo
-    //         n = atoi(buf) + 1;
-    //         sprintf(buf, "%i\n", n);
-    //     }
-    //     fputs(buf, temp); // Insere no arquivo temporário
-    //     count++;
-    // }
-    // // Adiciona novo filme
-    // char * lastId = strtok(buf, "|"); // le qual é o ultimo id
-    // n = atoi(lastId) + 1; // acrescenta ao número
-    // sprintf(buf, "\n%i", n);
-    // strcat(buf, "|"); // concatena com separados
-    // strcat(buf, movie); // concatena com dados do filme
-    // fputs(buf, temp); // Insere no arquivo temporário
+  file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
+  FILE *temp = fopen(TEMPFILENAME, "w"); // Cria um arquivo auxiliar e o abre como escrita
+  while ((fgets(buf, MAXDATASIZE, file)) != NULL) { // Le cada linha do arquivo
+      if (count == 1) { // Aumenta a quantidade de filmes no arquivo
+          n = atoi(buf) + 1;
+          sprintf(buf, "%i\n", n);
+      }
+      fputs(buf, temp); // Insere no arquivo temporário
+      count++;
+  }
+  // Adiciona novo filme
+  char * lastId = strtok(buf, "|"); // le qual é o ultimo id
+  n = atoi(lastId) + 1; // acrescenta ao número
+  sprintf(buf, "\n%i", n);
+  strcat(buf, "|"); // concatena com separados
+  strcat(buf, movie); // concatena com dados do filme
+  fputs(buf, temp); // Insere no arquivo temporário
 
-    // fclose(file); // fecha arquivo
-    // fclose(temp); // fecha arquivo
-    // remove(FILENAME); // apaga o arquivo original
-    // rename(TEMPFILENAME, FILENAME); // renomeia o arquivo temporário pro nome original
+  fclose(file); // fecha arquivo
+  fclose(temp); // fecha arquivo
+  remove(FILENAME); // apaga o arquivo original
+  rename(TEMPFILENAME, FILENAME); // renomeia o arquivo temporário pro nome original
 
-    // if (send(new_fd, "1", 2, 0) == -1) { // Envia que deu certo
-    //     perror("send");
-    //     return 1;
-    // }
+  if (sendClient("/ok", cliaddr) == -1) {
+    perror("failed on sendto");
+    exit(1);
+  }
 
-    return 0;
+  return 0;
 }
 
 // Opção 2: Adiciona um novo genero ao filme indicado
-int newGenderInMovie(struct sockaddr_in new_fd, char* args) {
-    // char buf[MAXDATASIZE];
-    // char movie[MAXDATASIZE];
-    // char* id = strtok(args, "|"); // primeiro argumento é o id
-    // char* gender = strtok(NULL, "\n"); // segundo argumento é o genero
-    // int movieExists = 0;
-    // int genderExists = 0;
+int newGenderInMovie(struct sockaddr_in cliaddr, char* args) {
+  char buf[MAXDATASIZE];
+  char movie[MAXDATASIZE];
+  char* id = strtok(args, "|"); // primeiro argumento é o id
+  char* gender = strtok(NULL, "\n"); // segundo argumento é o genero
+  int movieExists = 0;
+  int genderExists = 0;
 
-    // file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
-    // FILE *temp = fopen(TEMPFILENAME, "w"); // Cria um arquivo auxiliar e o abre como escrita
+  file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
+  FILE *temp = fopen(TEMPFILENAME, "w"); // Cria um arquivo auxiliar e o abre como escrita
 
-    // fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
-    // fputs(buf, temp); // insere a linha no arquivo temporário
-    // fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
-    // fputs(buf, temp); // insere a linha no arquivo temporário
+  fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+  fputs(buf, temp); // insere a linha no arquivo temporário
+  fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
+  fputs(buf, temp); // insere a linha no arquivo temporário
 
-    // while ((fgets(buf, MAXDATASIZE, file)) != NULL) { // Le cada linha do arquivo
-    //     strcpy(movie, buf); // copia o buffer
-    //     char * item = strtok(buf, "|"); // id
+  while ((fgets(buf, MAXDATASIZE, file)) != NULL) { // Le cada linha do arquivo
+    strcpy(movie, buf); // copia o buffer
+    char * item = strtok(buf, "|"); // id
 
-    //     if (strcmp(id, item) == 0) { // Se é esse o filme que queremos editar
-    //         movieExists = 1;
-    //         item = strtok(NULL, "|"); // título
-    //         item = strtok(NULL, "|"); // diretor
-    //         item = strtok(NULL, "|"); // ano
-    //         item = strtok(NULL, "|"); // genero
-    //         char * currGender = strtok(item, ",");
-    //         while (currGender) { // Para cada genero da lista
-    //             currGender[strcspn(currGender, "\n")] = 0; // Indica o fim da string
-    //             if (strcmp(currGender, gender) == 0) { // Se o genero já existe
-    //                 genderExists = 1;
-    //                 break;
-    //             }
-    //             currGender = strtok(NULL, ",");
-    //         }
-    //         if (!genderExists) { // Se o genero não existe, adiciona o genero no filme
-    //             movie[strcspn(movie, "\n")] = 0; // Indica o fim da string
-    //             strcat(movie, ",");
-    //             strcat(movie, gender);
-    //         }
-    //     }
-    //     fputs(movie, temp); // insere a linha no arquivo temporário
-    // }
+    if (strcmp(id, item) == 0) { // Se é esse o filme que queremos editar
+      movieExists = 1;
+      item = strtok(NULL, "|"); // título
+      item = strtok(NULL, "|"); // diretor
+      item = strtok(NULL, "|"); // ano
+      item = strtok(NULL, "|"); // genero
+      char * currGender = strtok(item, ",");
+      while (currGender) { // Para cada genero da lista
+        currGender[strcspn(currGender, "\n")] = 0; // Indica o fim da string
+        if (strcmp(currGender, gender) == 0) { // Se o genero já existe
+            genderExists = 1;
+            break;
+        }
+        currGender = strtok(NULL, ",");
+      }
+      if (!genderExists) { // Se o genero não existe, adiciona o genero no filme
+        movie[strcspn(movie, "\n")] = 0; // Indica o fim da string
+        strcat(movie, ",");
+        strcat(movie, gender);
+      }
+    }
+    fputs(movie, temp); // insere a linha no arquivo temporário
+  }
 
-    // fclose(file); // fecha arquivo
-    // fclose(temp); // fecha arquivo
-    // remove(FILENAME); // apaga o arquivo original
-    // rename(TEMPFILENAME, FILENAME); // renomeia o arquivo temporário pro nome original
+  fclose(file); // fecha arquivo
+  fclose(temp); // fecha arquivo
+  remove(FILENAME); // apaga o arquivo original
+  rename(TEMPFILENAME, FILENAME); // renomeia o arquivo temporário pro nome original
 
-    // if (genderExists || !movieExists) {
-    //     if (send(new_fd, "0", 2, 0) == -1) { // Se o genero já existe ou o filme não foi encontrado, envia que houve um erro
-    //         perror("send");
-    //         fclose(file); // fecha o arquivo
-    //         return 1;
-    //     }
-    // } else {
-    //     if (send(new_fd, "1", 2, 0) == -1) { // Envia que deu certo
-    //         perror("send");
-    //         fclose(file); // fecha o arquivo
-    //         return 1;
-    //     }
-    // }
-    return 0;
+  if (genderExists || !movieExists) {
+    if (sendClient("/ok", cliaddr) == -1) { // Se o genero já existe ou o filme não foi encontrado, envia que houve um erro
+      perror("failed on sendto");
+      fclose(file); // fecha o arquivo
+      exit(1);
+    }
+  } else {
+    if (sendClient("/failed", cliaddr) == -1) { // Se o genero já existe ou o filme não foi encontrado, envia que houve um erro
+      perror("failed on sendto");
+      fclose(file); // fecha o arquivo
+      exit(1);
+    }
+  }
+  return 0;
 }
 
 // Opção 3: Retorna todos os filmes e seus respectivos identificadores
-int getMoviesTitleId(struct sockaddr_in new_fd) { 
-    // char buf[MAXDATASIZE];
-    // char movie[MAXDATASIZE];
+int getMoviesTitleId(struct sockaddr_in cliaddr) { 
+  char buf[MAXDATASIZE];
+  char movie[MAXDATASIZE];
 
-    // file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
-    // fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+  file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
+  fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+  fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
 
-    // if (send(new_fd, buf, MAXDATASIZE-1, 0) == -1) { // Envia a quantidade de filmes
-    //     perror("send");
-    //     fclose(file);
-    //     return 1;
-    // }
+  while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
+    char * item = strtok(buf, "|"); // id
+    strcpy(movie, item);            // adiciona o id à mensagem de retorno
+    item = strtok(NULL, "|");       // título
+    strcat(movie, "|");             // adiciona o separador à mensagem de retorno
+    strcat(movie, item);            // adiciona o título à mensagem de retorno
 
-    // fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
+    if (sendClient(movie, cliaddr) == -1) { // Envia o filme
+      perror("failed on sendto");
+      fclose(file); // fecha o arquivo
+      exit(1);
+    }
+  }
 
-    // while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
-    //     char * item = strtok(buf, "|"); // id
-    //     strcpy(movie, item);            // adiciona o id à mensagem de retorno
-    //     item = strtok(NULL, "|");       // título
-    //     strcat(movie, "|");             // adiciona o separador à mensagem de retorno
-    //     strcat(movie, item);            // adiciona o título à mensagem de retorno
+  if (sendClient("/end", cliaddr) == -1) {
+    perror("failed on sendto");
+    fclose(file); // fecha o arquivo
+    exit(1);
+  }
 
-    //     if (send(new_fd, movie, MAXDATASIZE-1, 0) == -1) { // Envia o filme
-    //         perror("send");
-    //         fclose(file); // fecha o arquivo
-    //         return 1;
-    //     }
-    // }
-
-    // fclose(file); // fecha o arquivo
-    return 0;
+  fclose(file); // fecha o arquivo
+  return 0;
 }
 
 // Opção 4: Retorna todos os filmes (título, diretor e ano) de um determinado genero
-int getMoviesFromGender(struct sockaddr_in new_fd, char* gender) {
-    // char buf[MAXDATASIZE];
-    // char movie[MAXDATASIZE];
+int getMoviesFromGender(struct sockaddr_in cliaddr, char* gender) {
+  char buf[MAXDATASIZE];
+  char movie[MAXDATASIZE];
 
-    // file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
-    // fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
-    // fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
+  file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
+  fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+  fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
 
-    // while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
-    //     char * item = strtok(buf, "|"); // id
-    //     item = strtok(NULL, "|");       // título
-    //     strcpy(movie, item);
-    //     item = strtok(NULL, "|");       // diretor
-    //     strcat(movie, "|");
-    //     strcat(movie, item);
-    //     item = strtok(NULL, "|");       // ano
-    //     strcat(movie, "|");
-    //     strcat(movie, item);
-    //     item = strtok(NULL, "|");       // genero
-    //     char * currGender = strtok(item, ",");
-    //     while (currGender) { // Enquanto tiver mais generos para serem lidos
-    //         currGender[strcspn(currGender, "\n")] = 0; // Finaliza a string caso tenha um \n
-    //         if (strcmp(currGender, gender) == 0) { // Se tiver o genero no filme
-    //             if (send(new_fd, movie, MAXDATASIZE-1, 0) == -1) { // Envia o filme
-    //                 perror("send");
-    //                 fclose(file); // fecha o arquivo
-    //                 return 1;
-    //             }
-    //             break;
-    //         }
-    //         currGender = strtok(NULL, ",");
-    //     }
-    // }
+  while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
+    char * item = strtok(buf, "|"); // id
+    item = strtok(NULL, "|");       // título
+    strcpy(movie, item);
+    item = strtok(NULL, "|");       // diretor
+    strcat(movie, "|");
+    strcat(movie, item);
+    item = strtok(NULL, "|");       // ano
+    strcat(movie, "|");
+    strcat(movie, item);
+    item = strtok(NULL, "|");       // genero
+    char * currGender = strtok(item, ",");
+    while (currGender) { // Enquanto tiver mais generos para serem lidos
+      currGender[strcspn(currGender, "\n")] = 0; // Finaliza a string caso tenha um \n
+      if (strcmp(currGender, gender) == 0) { // Se tiver o genero no filme
+        if (sendClient(movie, cliaddr) == -1) { // Envia o filme
+          perror("failed on sendto");
+          fclose(file); // fecha o arquivo
+          exit(1);
+        }
+        break;
+      }
+      currGender = strtok(NULL, ",");
+    }
+  }
 
-    // if (send(new_fd, "/end", 5, 0) == -1) { // Envia que não tem mais filmes a serem enviados
-    //     perror("send");
-    //     fclose(file); // fecha o arquivo
-    //     return 1;
-    // }
+  if (sendClient("/end", cliaddr) == -1) { // Envia que não tem mais filmes a serem enviados
+    perror("failed on sendto");
+    fclose(file); // fecha o arquivo
+    exit(1);
+  }
 
-    // fclose(file); // fecha o arquivo
-    return 0;
+  fclose(file); // fecha o arquivo
+  return 0;
 }
 
 // Opção 5: Retorna todos os filmes
-int getAllMovies(struct sockaddr_in new_fd) {   
-    // char buf[MAXDATASIZE];
-    // file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
-    // fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+int getAllMovies(struct sockaddr_in cliaddr) {   
+  char buf[MAXDATASIZE];
+  file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
+  fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+  fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
 
-    // if (send(new_fd, buf, MAXDATASIZE-1, 0) == -1) { // Envia a quantidade de filmes
-    //     perror("send");
-    //     fclose(file); // fecha o arquivo
-    //     return 1;
-    // }
+  while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
+    if (sendClient(buf, cliaddr) == -1) {
+      perror("failed on sendto");
+      fclose(file); // fecha o arquivo
+      exit(1);
+    }
+  }
 
-    // fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
+  if (sendClient("/end", cliaddr) == -1) {
+    perror("failed on sendto");
+    fclose(file); // fecha o arquivo
+    exit(1);
+  }
 
-    // while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
-    //     if (send(new_fd, buf, MAXDATASIZE-1, 0) == -1) { // Envia o filme lido
-    //         perror("send");
-    //         fclose(file); // fecha o arquivo
-    //         return 1;
-    //     }
-    // }
-
-    // fclose(file); // fecha o arquivo
-    return 0;
+  fclose(file); // fecha o arquivo
+  return 0;
 }
 
 // Opção 6: Retorna o filme de um determinado identificador
-int getMovie(struct sockaddr_in new_fd, char* id) {
-    // char buf[MAXDATASIZE];
-    // char movie[MAXDATASIZE];
+int getMovie(struct sockaddr_in cliaddr, char* id) {
+  char buf[MAXDATASIZE];
+  char movie[MAXDATASIZE];
 
-    // file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
-    // fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
-    // fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
+  file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
+  fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+  fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
 
-    // while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
-    //     strcpy(movie, buf); // Coloca o ponteiro do movie no atual do buffer
-    //     char * currId = strtok(buf, "|"); // Pega o primeiro item, que é o id
-    //     if (strcmp(currId, id) == 0) { // Caso seja o id desejado
-    //         if (send(new_fd, movie, MAXDATASIZE-1, 0) == -1) { // Envia o filme
-    //             perror("send");
-    //             fclose(file); // fecha o arquivo
-    //             return 1;
-    //         }
-    //         fclose(file); // fecha o arquivo
-    //         return 0;
-    //     }
-    // }
+  while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
+    strcpy(movie, buf); // Coloca o ponteiro do movie no atual do buffer
+    char * currId = strtok(buf, "|"); // Pega o primeiro item, que é o id
+    if (strcmp(currId, id) == 0) { // Caso seja o id desejado
+      if (sendClient(movie, cliaddr) == -1) { // Envia o filme
+        perror("failed on sendto");
+        fclose(file); // fecha o arquivo
+        exit(1);
+      }
+      fclose(file); // fecha o arquivo
+      return 0;
+    }
+  }
 
-    // if (send(new_fd, "-1", 3, 0) == -1) { // Envia que houve um erro
-    //     perror("send");
-    //     return 1;
-    // }
-    
-    // fclose(file); // fecha o arquivo
-    return 0;
+  if (sendClient("/notfound", cliaddr) == -1) { // Envia que houve um erro
+    perror("failed on sendto");
+    fclose(file); // fecha o arquivo
+    exit(1);
+  }
+  
+  fclose(file); // fecha o arquivo
+  return 0;
 }
 
 // Opção 7: Remove o filme de um determinado identificador
-int removeMovie(struct sockaddr_in new_fd, char* id) {
-    // char buf[MAXDATASIZE];
-    // int line = 3;
+int removeMovie(struct sockaddr_in cliaddr, char* id) {
+  char buf[MAXDATASIZE];
+  int line = 3;
 
-    // file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
-    // fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
-    // fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
+  file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
+  fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+  fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
 
-    // while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
-    //     char * currId = strtok(buf, "|"); // Pega o primeiro item, que é o id
-    //     if (strcmp(currId, id) == 0) { // Se for o id desejado
-    //         deleteLine(line); // Apaga a linha daquele filme
-    //         if (send(new_fd, "1", 2, 0) == -1) { // Envia que deu certo
-    //             perror("send");
-    //             fclose(file); // fecha o arquivo
-    //             return 1;
-    //         }
-    //         fclose(file); // fecha o arquivo
-    //         return 0;
-    //     }
-    //     line++;
-    // }
+  while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
+    char * currId = strtok(buf, "|"); // Pega o primeiro item, que é o id
+    if (strcmp(currId, id) == 0) { // Se for o id desejado
+      deleteLine(line); // Apaga a linha daquele filme
+      if (sendClient("/ok", cliaddr) == -1) { // Envia que deu certo
+        perror("failed on sendto");
+        fclose(file); // fecha o arquivo
+        exit(1);
+      }
+      fclose(file); // fecha o arquivo
+      return 0;
+    }
+    line++;
+  }
 
-    // if (send(new_fd, "0", 2, 0) == -1) { // Envia que não deu certo
-    //     perror("send");
-    //     fclose(file); // fecha o arquivo
-    //     return 1;
-    // }
-    // fclose(file); // fecha o arquivo
-    
-    return 1;
+  if (sendClient("/failed", cliaddr) == -1) {
+    perror("failed on sendto");
+    fclose(file); // fecha o arquivo
+    exit(1);
+  }
+
+  fclose(file); // fecha o arquivo
+  return 1;
 }
 
 // Lida com cada cliente conectado, entendendo cada mensagem recebida e chamando a ação a ser feita
@@ -391,11 +390,6 @@ int handleOptions(char * buffer, struct sockaddr_in cliaddr) {
       break;
     default: // qualquer outra opção, ele sai
       return 0;
-  }   
-
-  if (sendClient("vai", cliaddr) == -1) {
-    perror("failed on sendto");
-    exit(1);
   }
 
   return 0;
