@@ -124,10 +124,10 @@ int newGenderInMovie() {
   printf("Escreva o genero desejado: ");
   fflush (stdin);
   fgets(gender, MAXGENDER, stdin);
-  gender[strcspn(gender, "\n")] = 0;
   for (int i = 0; i < strlen(gender); i++) {
       gender[i] = tolower((unsigned char) gender[i]);
   }
+  gender[strcspn(gender, "\n")] = 0;
   strcat(msg, gender);
 
   // Envia a mensagem requisitada

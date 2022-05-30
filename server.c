@@ -127,16 +127,19 @@ int newGenderInMovie(struct sockaddr_in cliaddr, char* args) {
   char* gender = strtok(NULL, "\n"); // segundo argumento é o genero
   int movieExists = 0;
   int genderExists = 0;
+  int count = 0;
 
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   FILE *temp = fopen(TEMPFILENAME, "w"); // Cria um arquivo auxiliar e o abre como escrita
 
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
+  int movieQuantity = atoi(buf);
   fputs(buf, temp); // insere a linha no arquivo temporário
   fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
   fputs(buf, temp); // insere a linha no arquivo temporário
 
   while ((fgets(buf, MAXDATASIZE, file)) != NULL) { // Le cada linha do arquivo
+    count++;
     strcpy(movie, buf); // copia o buffer
     char * item = strtok(buf, "|"); // id
 
@@ -150,8 +153,8 @@ int newGenderInMovie(struct sockaddr_in cliaddr, char* args) {
       while (currGender) { // Para cada genero da lista
         currGender[strcspn(currGender, "\n")] = 0; // Indica o fim da string
         if (strcmp(currGender, gender) == 0) { // Se o genero já existe
-            genderExists = 1;
-            break;
+          genderExists = 1;
+          break;
         }
         currGender = strtok(NULL, ",");
       }
@@ -159,8 +162,12 @@ int newGenderInMovie(struct sockaddr_in cliaddr, char* args) {
         movie[strcspn(movie, "\n")] = 0; // Indica o fim da string
         strcat(movie, ",");
         strcat(movie, gender);
+        if (movieQuantity != count) {
+          strcat(movie, "\n");
+        }
       }
     }
+
     fputs(movie, temp); // insere a linha no arquivo temporário
   }
 
@@ -170,13 +177,13 @@ int newGenderInMovie(struct sockaddr_in cliaddr, char* args) {
   rename(TEMPFILENAME, FILENAME); // renomeia o arquivo temporário pro nome original
 
   if (genderExists || !movieExists) {
-    if (sendClient("/ok", cliaddr) == -1) { // Se o genero já existe ou o filme não foi encontrado, envia que houve um erro
+    if (sendClient("/failed", cliaddr) == -1) { // Se o genero já existe ou o filme não foi encontrado, envia que houve um erro
       perror("failed on sendto");
       fclose(file); // fecha o arquivo
       exit(1);
     }
   } else {
-    if (sendClient("/failed", cliaddr) == -1) { // Se o genero já existe ou o filme não foi encontrado, envia que houve um erro
+    if (sendClient("/ok", cliaddr) == -1) { // Se deu tudo certo
       perror("failed on sendto");
       fclose(file); // fecha o arquivo
       exit(1);
