@@ -194,8 +194,7 @@ int newGenderInMovie(struct sockaddr_in cliaddr, char* args) {
 
 // Opção 3: Retorna todos os filmes e seus respectivos identificadores
 int getMoviesTitleId(struct sockaddr_in cliaddr) { 
-  char buf[MAXDATASIZE];
-  char movie[MAXDATASIZE];
+  char buf[MAXDATASIZE], movie[MAXDATASIZE], all[MAXDATASIZE] = "";
 
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
@@ -208,14 +207,13 @@ int getMoviesTitleId(struct sockaddr_in cliaddr) {
     strcat(movie, "|");             // adiciona o separador à mensagem de retorno
     strcat(movie, item);            // adiciona o título à mensagem de retorno
 
-    if (sendClient(movie, cliaddr) == -1) { // Envia o filme
-      perror("failed on sendto");
-      fclose(file); // fecha o arquivo
-      exit(1);
-    }
+    movie[strcspn(movie, "\n")] = 0;
+    strcat(all, movie);
+    strcat(all, "_");
   }
+  strcat(all, "end");
 
-  if (sendClient("/end", cliaddr) == -1) {
+  if (sendClient(all, cliaddr) == -1) {
     perror("failed on sendto");
     fclose(file); // fecha o arquivo
     exit(1);
