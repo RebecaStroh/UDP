@@ -1,6 +1,3 @@
-4
+1
 id|title|director|year|genders
-1|qwer ty|dfgh|1932|fsf,vdv,dede
-2|oiu djfh|nfjka eief|9834|dede,fsf
-3|vnjskv hnes|njfkes f|2873|cdcwl,csvse,dede
-4|nfjekw fhew|jdwqkdqw|8723|ncsjk,vdv,dede
+1|oie oie|lala|1892|joa,njdes

@@ -17,7 +17,7 @@
 #define PORT	 8080
 #define MAXLINE 1024
 #define BACKLOG 10      // Quantas conexões pendentes podem existir
-#define MAXDATASIZE 150 // Número máximo de bytes transferidos na mensagem
+#define MAXDATASIZE 10000 // Número máximo de bytes transferidos na mensagem
 #define FILENAME "data.txt" // Nome do arquivo que salva todos os dados
 #define TEMPFILENAME "delete.tmp" // Nome do arquivo que salva todos os dados
 
@@ -272,20 +272,19 @@ int getMoviesFromGender(struct sockaddr_in cliaddr, char* gender) {
 
 // Opção 5: Retorna todos os filmes
 int getAllMovies(struct sockaddr_in cliaddr) {   
-  char buf[MAXDATASIZE];
+  char buf[MAXDATASIZE], all[MAXDATASIZE] = "";
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
   fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
 
   while (fgets(buf, MAXDATASIZE, file) != NULL) { // Le cada filme do arquivo
-    if (sendClient(buf, cliaddr) == -1) {
-      perror("failed on sendto");
-      fclose(file); // fecha o arquivo
-      exit(1);
-    }
+    buf[strcspn(buf, "\n")] = 0;
+    strcat(all, buf);
+    strcat(all, "_");
   }
+  strcat(all, "end");
 
-  if (sendClient("/end", cliaddr) == -1) {
+  if (sendClient(all, cliaddr) == -1) {
     perror("failed on sendto");
     fclose(file); // fecha o arquivo
     exit(1);
@@ -435,7 +434,6 @@ int main() {
       exit(1);
     }
   	buffer[n] = '\0';
-  	printf("Received from client : %s\n", buffer);
   
     handleOptions(buffer, cliaddr); // Trata dos dados recebidos pelo cliente
   }

@@ -258,13 +258,14 @@ int getMoviesFromGender() {
 
 // Opção 5: Solicita os dados de todos os filmes
 int getAllMovies() {
+  char *saveMovie, *saveItem;
   // Envia a mensagem requisitada
 	if (sendServer("5")) {
     perror("failed on sendto");
     exit(1);
   }
 
-  // Espera a resposta do servidor com o primeiro filme ou indicando que não existe filmes (/end)
+  // Espera a resposta do servidor com todos os filmes, finalizando com end
 	if ((n = recvFromServer()) == -1) {
     perror("failed on recvfrom");
     exit(1);
@@ -273,35 +274,30 @@ int getAllMovies() {
   // Indica o fim da string
   buffer[n] = '\0';
 
-  if (!strcmp(buffer, "/end")) { // Caso ainda não existam filmes cadastrados
-    printf("\nNão existem filmes adicionados ainda! \n");
-  } else { // Le e mostra os filmes cadatrados
-    printf("\nOs filmes cadastrados são: \n");
+  char *movie = strtok_r(buffer, "_", &saveMovie);
 
-    while (!!strcmp(buffer, "/end")) {
+  if (strcmp(movie, "end")==0) {
+    printf("\nNão existem filmes adicionados ainda! \n");
+  } else {
+    printf("\nOs filmes cadastrados são: \n");
+    while(strcmp(movie, "end")!=0) {
       // Printa o filme
       printf("  => ");
-      char * item = strtok(buffer, "|"); // id
-      printf("id: %s, ", item);
-      item = strtok(NULL, "|");       // título
-      printf("título: %s, ", item);
-      item = strtok(NULL, "|");       // diretor
-      printf("diretor: %s, ", item);
-      item = strtok(NULL, "|");       // ano
-      printf("ano: %s, ", item);
-      item = strtok(NULL, "\n");      // genero
-      printf("generos: %s\n", item);
+      char * item = strtok_r(movie, "|", &saveItem); // id
+      printf("id: %s |", item);
+      item = strtok_r(NULL, "|", &saveItem);       // título
+      printf(" título: %s |", item);
+      item = strtok_r(NULL, "|", &saveItem);       // diretor
+      printf(" diretor: %s |", item);
+      item = strtok_r(NULL, "|", &saveItem);       // ano
+      printf(" ano: %s |", item);
+      item = strtok_r(NULL, "\n", &saveItem);      // genero
+      printf(" generos: %s\n", item);
 
-      // Espera a próxima resposta
-    	if ((n = recvFromServer()) == -1) {
-        perror("failed on recvfrom");
-        exit(1);
-      }
-
-      // Indica o fim da string
-      buffer[n] = '\0';
+      movie = strtok_r(NULL, "_", &saveMovie);
     }
   }
+
   return 0;
 }
 
