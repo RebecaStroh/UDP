@@ -200,6 +200,7 @@ int getMoviesTitleId() {
 // Opção 4: Solicita dados (título, diretor e ano) de filmes de um dado genero
 int getMoviesFromGender() {
   char gender[MAXGENDER];
+  char *saveMovie, *saveItem;
 
   // Adiciona a função desejada à mensagem
   char msg[MAXDATASIZE] = "4|";
@@ -228,31 +229,26 @@ int getMoviesFromGender() {
   // Indica o fim da string
   buffer[n] = '\0';
 
-  if (strcmp(buffer, "/end") == 0) {
-      printf("\nNão existem filmes adicionados nesse genero! \n");
+  char *movie = strtok_r(buffer, "_", &saveMovie);
+
+  if (strcmp(movie, "end")==0) {
+    printf("\nNão existem filmes adicionados ainda! \n");
   } else {
-    printf("\nOs filmes com o genero %s são: \n", gender);
-
-    while (strcmp(buffer, "/end") != 0) { // Enquanto não for o fim da listagem
-      // Printa dados do filme
+    printf("\nOs filmes cadastrados são: \n");
+    while(strcmp(movie, "end")!=0) {
+      // Printa o filme
       printf("  => ");
-      char * item = strtok(buffer, "|"); // título
-      printf("título: %s, ", item);
-      item = strtok(NULL, "|");       // diretor
-      printf("diretor: %s, ", item);
-      item = strtok(NULL, "\n");      // ano
-      printf("ano: %s\n", item);
+      char * item = strtok_r(movie, "|", &saveItem); // id
+      printf(" título: %s |", item);
+      item = strtok_r(NULL, "|", &saveItem);       // diretor
+      printf(" diretor: %s |", item);
+      item = strtok_r(NULL, "|", &saveItem);       // ano
+      printf(" ano: %s\n", item);
 
-      // Espera uma mensagem, que pode ser um outro filme ou indicio que não tem filme com tal genero (/end)
-    	if ((n = recvFromServer()) == -1) {
-        perror("failed on recvfrom");
-        exit(1);
-      }
-
-      // Indica o fim da string
-      buffer[n] = '\0';
+      movie = strtok_r(NULL, "_", &saveMovie);
     }
   }
+
   return 0;
 }
 

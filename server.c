@@ -227,8 +227,7 @@ int getMoviesTitleId(struct sockaddr_in cliaddr) {
 
 // Opção 4: Retorna todos os filmes (título, diretor e ano) de um determinado genero
 int getMoviesFromGender(struct sockaddr_in cliaddr, char* gender) {
-  char buf[MAXDATASIZE];
-  char movie[MAXDATASIZE];
+  char buf[MAXDATASIZE], movie[MAXDATASIZE], all[MAXDATASIZE] = "";
 
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
@@ -249,18 +248,17 @@ int getMoviesFromGender(struct sockaddr_in cliaddr, char* gender) {
     while (currGender) { // Enquanto tiver mais generos para serem lidos
       currGender[strcspn(currGender, "\n")] = 0; // Finaliza a string caso tenha um \n
       if (strcmp(currGender, gender) == 0) { // Se tiver o genero no filme
-        if (sendClient(movie, cliaddr) == -1) { // Envia o filme
-          perror("failed on sendto");
-          fclose(file); // fecha o arquivo
-          exit(1);
-        }
+        movie[strcspn(movie, "\n")] = 0;
+        strcat(all, movie);
+        strcat(all, "_");
         break;
       }
       currGender = strtok(NULL, ",");
     }
   }
+  strcat(all, "end");
 
-  if (sendClient("/end", cliaddr) == -1) { // Envia que não tem mais filmes a serem enviados
+  if (sendClient(all, cliaddr) == -1) {
     perror("failed on sendto");
     fclose(file); // fecha o arquivo
     exit(1);
