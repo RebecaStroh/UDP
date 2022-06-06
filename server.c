@@ -88,7 +88,7 @@ void deleteLine(const int line) {
 }
 
 // Opção 1: Adiciona um novo filme à lista do arquivo
-int newMovie(struct sockaddr_in cliaddr, char* movie) {
+int newMovie(char* code, struct sockaddr_in cliaddr, char* movie) {
   char buf[MAXDATASIZE];
   int count = 1;
   int n;
@@ -125,7 +125,7 @@ int newMovie(struct sockaddr_in cliaddr, char* movie) {
 }
 
 // Opção 2: Adiciona um novo genero ao filme indicado
-int newGenderInMovie(struct sockaddr_in cliaddr, char* args) {
+int newGenderInMovie(char* code, struct sockaddr_in cliaddr, char* args) {
   char buf[MAXDATASIZE];
   char movie[MAXDATASIZE];
   char* id = strtok(args, "|"); // primeiro argumento é o id
@@ -198,8 +198,11 @@ int newGenderInMovie(struct sockaddr_in cliaddr, char* args) {
 }
 
 // Opção 3: Retorna todos os filmes e seus respectivos identificadores
-int getMoviesTitleId(struct sockaddr_in cliaddr) { 
+int getMoviesTitleId(char* code, struct sockaddr_in cliaddr) { 
   char buf[MAXDATASIZE], movie[MAXDATASIZE], all[MAXDATASIZE] = "";
+
+  strcat(all, code);
+  strcat(all, "_");
 
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
@@ -229,8 +232,11 @@ int getMoviesTitleId(struct sockaddr_in cliaddr) {
 }
 
 // Opção 4: Retorna todos os filmes (título, diretor e ano) de um determinado genero
-int getMoviesFromGender(struct sockaddr_in cliaddr, char* gender) {
+int getMoviesFromGender(char* code, struct sockaddr_in cliaddr, char* gender) {
   char buf[MAXDATASIZE], movie[MAXDATASIZE], all[MAXDATASIZE] = "";
+printf("\nrecebi: %s -- %s\n\n", code, gender);
+  strcat(all, code);
+  strcat(all, "_");
 
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
@@ -272,8 +278,12 @@ int getMoviesFromGender(struct sockaddr_in cliaddr, char* gender) {
 }
 
 // Opção 5: Retorna todos os filmes
-int getAllMovies(struct sockaddr_in cliaddr) {   
+int getAllMovies(char* code, struct sockaddr_in cliaddr) {   
   char buf[MAXDATASIZE], all[MAXDATASIZE] = "";
+
+  strcat(all, code);
+  strcat(all, "_");
+
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
   fgets(buf, MAXDATASIZE, file); // Le o header do arquivo
@@ -296,7 +306,7 @@ int getAllMovies(struct sockaddr_in cliaddr) {
 }
 
 // Opção 6: Retorna o filme de um determinado identificador
-int getMovie(struct sockaddr_in cliaddr, char* id) {
+int getMovie(char* code, struct sockaddr_in cliaddr, char* id) {
   char buf[MAXDATASIZE];
   char movie[MAXDATASIZE];
 
@@ -329,7 +339,7 @@ int getMovie(struct sockaddr_in cliaddr, char* id) {
 }
 
 // Opção 7: Remove o filme de um determinado identificador
-int removeMovie(struct sockaddr_in cliaddr, char* id) {
+int removeMovie(char* code, struct sockaddr_in cliaddr, char* id) {
   char buf[MAXDATASIZE];
   int line = 3;
 
@@ -366,34 +376,37 @@ int removeMovie(struct sockaddr_in cliaddr, char* id) {
 int handleOptions(char * buffer, struct sockaddr_in cliaddr) {
   // Pega o primeiro item na mensagem que é a função desejada
   char * item = strtok(buffer, "|");
+  char * code;
+  strcpy(code,item);
+  item = strtok(NULL, "|"); // le a opção
 
   // Estuda qual é a opção desejada
   switch (item[0]) {
     case '1':
       item = strtok(NULL, "\n"); // le demais argumentos
-      newMovie(cliaddr, item);
+      newMovie(code, cliaddr, item);
       break;
     case '2':
       item = strtok(NULL, "\n"); // le demais argumentos
-      newGenderInMovie(cliaddr, item);
+      newGenderInMovie(code, cliaddr, item);
       break;
     case '3':
-      getMoviesTitleId(cliaddr);
+      getMoviesTitleId(code, cliaddr);
       break;
     case '4':
       item = strtok(NULL, "\n"); // le demais argumentos
-      getMoviesFromGender(cliaddr, item);
+      getMoviesFromGender(code, cliaddr, item);
       break;
     case '5':
-      getAllMovies(cliaddr);
+      getAllMovies(code, cliaddr);
       break;
     case '6':
       item = strtok(NULL, "\n"); // le demais argumentos
-      getMovie(cliaddr, item);
+      getMovie(code, cliaddr, item);
       break;
     case '7':
       item = strtok(NULL, "\n"); // le demais argumentos
-      removeMovie(cliaddr, item);
+      removeMovie(code, cliaddr, item);
       break;
     default: // qualquer outra opção, ele sai
       return 0;

@@ -188,9 +188,14 @@ int newGenderInMovie() {
 // Opção 3: Solicita todos os filmes e seus respectivos identificadores
 int getMoviesTitleId() {
   char *saveMovie, *saveItem;
+  char code[MAXDATASIZE], msg[MAXDATASIZE] = "";
+
+  sprintf(code, "%i", rand());
+  strcat(msg, code);
+  strcat(msg, "|3");
 
   // Envia a mensagem requisitada
-	if (sendServer("3")) {
+	if (sendServer(msg)) {
     perror("failed on sendto");
     exit(1);
   }
@@ -199,8 +204,15 @@ int getMoviesTitleId() {
   int result = selectRead();
   if (result == 0) return 0;
 
-  char *movie = strtok_r(buffer, "_", &saveMovie);
+  // Checa se a resposta do servidor é sibre a 'pergunta' atual
+  char *serverCode = strtok_r(buffer, "_", &saveMovie);
+  if (strcmp(serverCode, code) != 0) {
+    printf("\nA resposta recebida do servidor está relacionada a outra solicitação\n");
+    exit(1);
+  }
 
+  // Trata a resposta recebida, printando os filmes
+  char *movie = strtok_r(NULL, "_", &saveMovie);
   if (strcmp(movie, "end")==0) {
     printf("\nNão existem filmes adicionados ainda! \n");
   } else {
@@ -224,9 +236,12 @@ int getMoviesTitleId() {
 int getMoviesFromGender() {
   char gender[MAXGENDER];
   char *saveMovie, *saveItem;
+  char code[MAXDATASIZE], msg[MAXDATASIZE] = "";
 
-  // Adiciona a função desejada à mensagem
-  char msg[MAXDATASIZE] = "4|";
+  sprintf(code, "%i", rand());
+  strcat(msg, code);
+  strcat(msg, "|4|");
+
   // Adiciona o genero à mensagem, lendo-o
   printf("Escreva o genero desejado: ");
   fflush (stdin);
@@ -247,8 +262,15 @@ int getMoviesFromGender() {
   int result = selectRead();
   if (result == 0) return 0;
 
-  char *movie = strtok_r(buffer, "_", &saveMovie);
+  // Checa se a resposta do servidor é sibre a 'pergunta' atual
+  char *serverCode = strtok_r(buffer, "_", &saveMovie);
+  if (strcmp(serverCode, code) != 0) {
+    printf("\nA resposta recebida do servidor está relacionada a outra solicitação\n");
+    exit(1);
+  }
 
+  // Trata a resposta recebida, printando os filmes
+  char *movie = strtok_r(NULL, "_", &saveMovie);
   if (strcmp(movie, "end")==0) {
     printf("\nNão existem filmes adicionados ainda! \n");
   } else {
@@ -273,9 +295,14 @@ int getMoviesFromGender() {
 // Opção 5: Solicita os dados de todos os filmes
 int getAllMovies() {
   char *saveMovie, *saveItem;
+  char code[MAXDATASIZE], msg[MAXDATASIZE] = "";
+
+  sprintf(code, "%i", rand());
+  strcat(msg, code);
+  strcat(msg, "|5");
 
   // Envia a mensagem requisitada
-	if (sendServer("5")) {
+	if (sendServer(msg)) {
     perror("failed on sendto");
     exit(1);
   }
@@ -284,8 +311,15 @@ int getAllMovies() {
   int result = selectRead();
   if (result == 0) return 0;
 
-  char *movie = strtok_r(buffer, "_", &saveMovie);
+  // Checa se a resposta do servidor é sibre a 'pergunta' atual
+  char *serverCode = strtok_r(buffer, "_", &saveMovie);
+  if (strcmp(serverCode, code) != 0) {
+    printf("\nA resposta recebida do servidor está relacionada a outra solicitação\n");
+    exit(1);
+  }
 
+  // Trata a resposta recebida, printando os filmes
+  char *movie = strtok_r(NULL, "_", &saveMovie);
   if (strcmp(movie, "end")==0) {
     printf("\nNão existem filmes adicionados ainda! \n");
   } else {
