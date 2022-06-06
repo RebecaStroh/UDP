@@ -116,7 +116,10 @@ int newMovie(char* code, struct sockaddr_in cliaddr, char* movie) {
   remove(FILENAME); // apaga o arquivo original
   rename(TEMPFILENAME, FILENAME); // renomeia o arquivo temporário pro nome original
 
-  if (sendClient("/ok", cliaddr) == -1) {
+  char all[MAXDATASIZE] = "";
+  strcat(all, code);
+  strcat(all, "_/ok");
+  if (sendClient(all, cliaddr) == -1) {
     perror("failed on sendto");
     exit(1);
   }
@@ -181,19 +184,22 @@ int newGenderInMovie(char* code, struct sockaddr_in cliaddr, char* args) {
   remove(FILENAME); // apaga o arquivo original
   rename(TEMPFILENAME, FILENAME); // renomeia o arquivo temporário pro nome original
 
+  char all[MAXDATASIZE] = "";
+  strcat(all, code);
+  strcat(all, "_");
+
   if (genderExists || !movieExists) {
-    if (sendClient("/failed", cliaddr) == -1) { // Se o genero já existe ou o filme não foi encontrado, envia que houve um erro
-      perror("failed on sendto");
-      fclose(file); // fecha o arquivo
-      exit(1);
-    }
+    strcat(all, "/failed");
   } else {
-    if (sendClient("/ok", cliaddr) == -1) { // Se deu tudo certo
-      perror("failed on sendto");
-      fclose(file); // fecha o arquivo
-      exit(1);
-    }
+    strcat(all, "/ok");
   }
+
+  if (sendClient(all, cliaddr) == -1) { // Se o genero já existe ou o filme não foi encontrado, envia que houve um erro
+    perror("failed on sendto");
+    fclose(file); // fecha o arquivo
+    exit(1);
+  }
+
   return 0;
 }
 
@@ -234,7 +240,7 @@ int getMoviesTitleId(char* code, struct sockaddr_in cliaddr) {
 // Opção 4: Retorna todos os filmes (título, diretor e ano) de um determinado genero
 int getMoviesFromGender(char* code, struct sockaddr_in cliaddr, char* gender) {
   char buf[MAXDATASIZE], movie[MAXDATASIZE], all[MAXDATASIZE] = "";
-printf("\nrecebi: %s -- %s\n\n", code, gender);
+
   strcat(all, code);
   strcat(all, "_");
 
@@ -309,6 +315,10 @@ int getAllMovies(char* code, struct sockaddr_in cliaddr) {
 int getMovie(char* code, struct sockaddr_in cliaddr, char* id) {
   char buf[MAXDATASIZE];
   char movie[MAXDATASIZE];
+  char all[MAXDATASIZE] = "";
+
+  strcat(all, code);
+  strcat(all, "_");
 
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
@@ -318,7 +328,8 @@ int getMovie(char* code, struct sockaddr_in cliaddr, char* id) {
     strcpy(movie, buf); // Coloca o ponteiro do movie no atual do buffer
     char * currId = strtok(buf, "|"); // Pega o primeiro item, que é o id
     if (strcmp(currId, id) == 0) { // Caso seja o id desejado
-      if (sendClient(movie, cliaddr) == -1) { // Envia o filme
+      strcat(all, movie);
+      if (sendClient(all, cliaddr) == -1) { // Envia o filme
         perror("failed on sendto");
         fclose(file); // fecha o arquivo
         exit(1);
@@ -327,8 +338,9 @@ int getMovie(char* code, struct sockaddr_in cliaddr, char* id) {
       return 0;
     }
   }
+  strcat(all, "/notfound");
 
-  if (sendClient("/notfound", cliaddr) == -1) { // Envia que houve um erro
+  if (sendClient(all, cliaddr) == -1) { // Envia que houve um erro
     perror("failed on sendto");
     fclose(file); // fecha o arquivo
     exit(1);
@@ -342,6 +354,10 @@ int getMovie(char* code, struct sockaddr_in cliaddr, char* id) {
 int removeMovie(char* code, struct sockaddr_in cliaddr, char* id) {
   char buf[MAXDATASIZE];
   int line = 3;
+  char all[MAXDATASIZE] = "";
+
+  strcat(all, code);
+  strcat(all, "_");
 
   file = fopen(FILENAME, "r"); // Abre o arquivo como leitura
   fgets(buf, MAXDATASIZE, file); // Le quantos filmes existem no arquivo
@@ -351,7 +367,8 @@ int removeMovie(char* code, struct sockaddr_in cliaddr, char* id) {
     char * currId = strtok(buf, "|"); // Pega o primeiro item, que é o id
     if (strcmp(currId, id) == 0) { // Se for o id desejado
       deleteLine(line); // Apaga a linha daquele filme
-      if (sendClient("/ok", cliaddr) == -1) { // Envia que deu certo
+      strcat(all, "/ok");
+      if (sendClient(all, cliaddr) == -1) { // Envia que deu certo
         perror("failed on sendto");
         fclose(file); // fecha o arquivo
         exit(1);
@@ -362,7 +379,8 @@ int removeMovie(char* code, struct sockaddr_in cliaddr, char* id) {
     line++;
   }
 
-  if (sendClient("/failed", cliaddr) == -1) {
+  strcat(all, "/failed");
+  if (sendClient(all, cliaddr) == -1) {
     perror("failed on sendto");
     fclose(file); // fecha o arquivo
     exit(1);
@@ -468,8 +486,6 @@ int main() {
       exit(1);
     }
   	buffer[n] = '\0';
-
-    printf("\n Readed: %s\n", buffer);
 
     handleOptions(buffer, cliaddr); // Trata dos dados recebidos pelo cliente
   }

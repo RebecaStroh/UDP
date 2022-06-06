@@ -77,9 +77,12 @@ int newMovie() {
   char director[MAXDIRECTOR];
   char year[MAXYEAR];
   char c;
+  char code[MAXDATASIZE], msg[MAXDATASIZE] = "";
 
-  // Adiciona a função desejada à mensagem
-  char msg[MAXDATASIZE] = "1|";
+  sprintf(code, "%i", rand());
+  strcat(msg, code);
+  strcat(msg, "|1|");
+
   // Adiciona o título à mensagem, lendo-o
   printf("Escreva um título: ");
   fflush (stdin);
@@ -118,16 +121,20 @@ int newMovie() {
     exit(1);
   }
 
-  // Espera a resposta do servidor
-	if ((n = recvFromServer()) == -1) {
-    perror("failed on recvfrom");
+  // Espera a resposta do servidor com todos os filmes, finalizado com end
+  int result = selectRead();
+  if (result == 0) return 0;
+
+  // Checa se a resposta do servidor é sibre a 'pergunta' atual
+  char *serverCode = strtok(buffer, "_");
+  if (strcmp(serverCode, code) != 0) {
+    printf("\nA resposta recebida do servidor está relacionada a outra solicitação\n");
     exit(1);
   }
 
-  // Indica o fim da string
-  buffer[n] = '\0';
-
-  if (!strcmp(buffer, "/ok")) { // Caso o filme tenha sido adicionado com sucesso
+  // Trata a resposta recebida
+  char* answer = strtok(NULL, "_");
+  if (!strcmp(answer, "/ok")) { // Caso o filme tenha sido adicionado com sucesso
       printf("\nFilme adicionado com sucesso!\n");
   } else { // Caso houveram problemas ao adicionar o filme
       printf("\nHouve algum problema ao adicionar o seu filme...\n");
@@ -141,9 +148,12 @@ int newGenderInMovie() {
   char gender[MAXGENDER];
   char id[MAXID];
   char c;
+  char code[MAXDATASIZE], msg[MAXDATASIZE] = "";
 
-  // Adiciona a função desejada à mensagem
-  char msg[MAXDATASIZE] = "2|";
+  sprintf(code, "%i", rand());
+  strcat(msg, code);
+  strcat(msg, "|2|");
+
   // Adiciona o id à mensagem, lendo-o
   printf("Escreva o id do filme: ");
   fflush (stdin);
@@ -167,16 +177,20 @@ int newGenderInMovie() {
     exit(1);
   }
 
-  // Espera a resposta do servidor
-	if ((n = recvFromServer()) == -1) {
-    perror("failed on recvfrom");
+  // Espera a resposta do servidor com todos os filmes, finalizado com end
+  int result = selectRead();
+  if (result == 0) return 0;
+
+  // Checa se a resposta do servidor é sibre a 'pergunta' atual
+  char *serverCode = strtok(buffer, "_");
+  if (strcmp(serverCode, code) != 0) {
+    printf("\nA resposta recebida do servidor está relacionada a outra solicitação\n");
     exit(1);
   }
 
-  // Indica o fim da string
-  buffer[n] = '\0';
-
-  if (!strcmp(buffer, "/ok")) { // Se a adição foi feita com sucesso
+  // Trata a resposta recebida
+  char* answer = strtok(NULL, "_");
+  if (!strcmp(answer, "/ok")) { // Se a adição foi feita com sucesso
       printf("\nGenero adicionado com sucesso!\n");
   } else { // Caso encontrou-se problemas na adição
       printf("\nFilme com id inexistente ou genero já existe neste filme\n");
@@ -272,7 +286,7 @@ int getMoviesFromGender() {
   // Trata a resposta recebida, printando os filmes
   char *movie = strtok_r(NULL, "_", &saveMovie);
   if (strcmp(movie, "end")==0) {
-    printf("\nNão existem filmes adicionados ainda! \n");
+    printf("\nNão existem filmes adicionados ainda com esse genero! \n");
   } else {
     printf("\nOs filmes cadastrados são: \n");
     while(strcmp(movie, "end")!=0) {
@@ -348,9 +362,12 @@ int getAllMovies() {
 // Opção 6: Solicita as informações de um filme
 int getMovie() {
   char id[MAXID];
+  char code[MAXDATASIZE], msg[MAXDATASIZE] = "";
 
-  // Adiciona a função desejada à mensagem
-  char msg[MAXDATASIZE] = "6|";
+  sprintf(code, "%i", rand());
+  strcat(msg, code);
+  strcat(msg, "|6|");
+
   // Adiciona o id à mensagem, lendo-o
   printf("Escreva o id do filme: ");
   fflush (stdin);
@@ -364,21 +381,25 @@ int getMovie() {
     exit(1);
   }
 
-  // Espera a resposta do servidor
-	if ((n = recvFromServer()) == -1) {
-    perror("failed on recvfrom");
+  // Espera a resposta do servidor com todos os filmes, finalizado com end
+  int result = selectRead();
+  if (result == 0) return 0;
+
+  // Checa se a resposta do servidor é sibre a 'pergunta' atual
+  char *serverCode = strtok(buffer, "_");
+  if (strcmp(serverCode, code) != 0) {
+    printf("\nA resposta recebida do servidor está relacionada a outra solicitação\n");
     exit(1);
   }
 
-  // Indica o fim da string
-  buffer[n] = '\0';
-
-  if (!strcmp(buffer, "/notfound")) { // Se não achou
+  // Trata a resposta recebida
+  char* answer = strtok(NULL, "_");
+  if (!strcmp(answer, "/notfound")) { // Se não achou
       printf("\nNão existe nenhum filme com esse id!\n");
   } else { // Se achou, printa as informações
       printf("\nSegue as informações do filme desejado:\n");
       printf("  => ");
-      char * item = strtok(buffer, "|"); // id
+      char * item = strtok(answer, "|"); // id
       printf("id: %s, ", item);
       item = strtok(NULL, "|");       // título
       printf("título: %s, ", item);
@@ -396,9 +417,12 @@ int getMovie() {
 // Opção 7: Solicita a remoção de um filme a partir de um identificador
 int removeMovie() {
   char id[MAXID];
+  char code[MAXDATASIZE], msg[MAXDATASIZE] = "";
 
-  // Adiciona a função desejada à mensagem
-  char msg[MAXDATASIZE] = "7|";
+  sprintf(code, "%i", rand());
+  strcat(msg, code);
+  strcat(msg, "|7|");
+
   // Adiciona o id à mensagem, lendo-o
   printf("Escreva o id do filme: ");
   fflush (stdin);
@@ -412,14 +436,20 @@ int removeMovie() {
     exit(1);
   }
 
-	if ((n = recvFromServer()) == -1) {
-    perror("failed on recvfrom");
+  // Espera a resposta do servidor com todos os filmes, finalizado com end
+  int result = selectRead();
+  if (result == 0) return 0;
+
+  // Checa se a resposta do servidor é sibre a 'pergunta' atual
+  char *serverCode = strtok(buffer, "_");
+  if (strcmp(serverCode, code) != 0) {
+    printf("\nA resposta recebida do servidor está relacionada a outra solicitação\n");
     exit(1);
   }
 
-	buffer[n] = '\0';
-
-  if (!strcmp(buffer, "/failed")) { // Se não deu certo
+  // Trata a resposta recebida
+  char* answer = strtok(NULL, "_");
+  if (!strcmp(answer, "/failed")) { // Se não deu certo
       printf("\nNão existe um filme com tal id\n");
   } else { // Se deu certo
       printf("\nFilme de id %s deletado com sucesso\n", id);
