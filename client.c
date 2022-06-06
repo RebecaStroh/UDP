@@ -243,14 +243,9 @@ int getMoviesFromGender() {
     exit(1);
   }
 
-  // Espera a resposta do servidor com todos os filmes, finalizando com end
-	if ((n = recvFromServer()) == -1) {
-    perror("failed on recvfrom");
-    exit(1);
-  }
-
-  // Indica o fim da string
-  buffer[n] = '\0';
+  // Espera a resposta do servidor com todos os filmes, finalizado com end
+  int result = selectRead();
+  if (result == 0) return 0;
 
   char *movie = strtok_r(buffer, "_", &saveMovie);
 
@@ -285,14 +280,9 @@ int getAllMovies() {
     exit(1);
   }
 
-  // Espera a resposta do servidor com todos os filmes, finalizando com end
-	if ((n = recvFromServer()) == -1) {
-    perror("failed on recvfrom");
-    exit(1);
-  }
-
-  // Indica o fim da string
-  buffer[n] = '\0';
+  // Espera a resposta do servidor com todos os filmes, finalizado com end
+  int result = selectRead();
+  if (result == 0) return 0;
 
   char *movie = strtok_r(buffer, "_", &saveMovie);
 
