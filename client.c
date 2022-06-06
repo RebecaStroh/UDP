@@ -31,12 +31,43 @@ char buffer[MAXDATASIZE];
 struct sockaddr_in servaddr;
 socklen_t len;
 
+// handling non blocking functions
+struct timeval tv;
+fd_set rset, wfds, efds;
+int nready, maxfdp;
+
 int sendServer(char * message) {
  return sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *) &servaddr, sizeof(servaddr)) == -1;
 }
 
 int recvFromServer() {
   return recvfrom(sockfd, (char *)buffer, MAXDATASIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
+}
+
+int selectRead() {
+  FD_SET (sockfd, &rset); // add our descriptors to the set
+
+  nready = select (maxfdp, &rset, NULL, NULL, &tv);
+
+  if (nready == -1) {
+    perror("select"); // error occurred in select()
+    exit(1);
+  } else if (nready == 0) {
+    printf("Tempo limite excedido. Não foi recebido nenhum dado depois de 5 segundos.\n");
+    return 0;
+  } else if (!FD_ISSET (sockfd, &rset)) {
+    exit(1);
+  }
+
+	if ((n = recvFromServer()) == -1) {
+    perror("failed on recvfrom");
+    exit(1);
+  }
+
+  // Indica o fim da string
+  buffer[n] = '\0';
+
+  return 1;
 }
 
 // Opção 1: Solicita a adição de um filme
@@ -164,14 +195,9 @@ int getMoviesTitleId() {
     exit(1);
   }
 
-  // Espera a resposta do servidor com todos os filmes, finalizando com end
-	if ((n = recvFromServer()) == -1) {
-    perror("failed on recvfrom");
-    exit(1);
-  }
-
-  // Indica o fim da string
-  buffer[n] = '\0';
+  // Espera a resposta do servidor com todos os filmes, finalizado com end
+  int result = selectRead();
+  if (result == 0) return 0;
 
   char *movie = strtok_r(buffer, "_", &saveMovie);
 
@@ -437,6 +463,12 @@ int main() {
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons(PORT);
 	servaddr.sin_addr.s_addr = INADDR_ANY;
+
+  // handling non blocking
+  FD_ZERO(&rset); // clear the set ahead of time
+  maxfdp = sockfd +1;
+  tv.tv_sec = 5;
+  tv.tv_usec = 0;
 
   menu();
 	
