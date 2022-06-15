@@ -467,6 +467,8 @@ int main() {
   tv.tv_usec = 0;
 
   while (1) {
+    printf("Esperando requisições...\n");
+
     FD_SET (sockfd, &rset); // add our descriptors to the set
 
     nready = select (maxfdp, &rset, NULL, NULL, &tv);
