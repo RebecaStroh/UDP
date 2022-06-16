@@ -28,11 +28,6 @@ char buffer[MAXLINE];
 struct sockaddr_in servaddr;
 socklen_t len;
 
-// handling non blocking functions
-struct timeval tv;
-fd_set rset;
-int nready, maxfdp;
-
 int sendClient(char * message, struct sockaddr_in cliaddr) {
   return sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *) &cliaddr, len) == -1;
 }
@@ -459,29 +454,9 @@ int main() {
 	len = sizeof(cliaddr); //len is value/result
 
   garanteeNumberAndHeaderLinesOnFile();
-  
-  // handling non blocking
-  FD_ZERO(&rset); // clear the set ahead of time
-  maxfdp = sockfd +1;
-  tv.tv_sec = 5;
-  tv.tv_usec = 0;
 
   while (1) {
     printf("Esperando requisições...\n");
-
-    FD_SET (sockfd, &rset); // add our descriptors to the set
-
-    nready = select (maxfdp, &rset, NULL, NULL, &tv);
-
-    if (nready == -1) {
-      perror("select"); // error occurred in select()
-      exit(1);
-    } else if (nready == 0) {
-      printf("Tempo limite excedido. Não foi recebido nenhum dado depois de 5 segundos.\n");
-      continue;
-    } else if (!FD_ISSET (sockfd, &rset)) {
-      exit(1);
-    }
 
   	if ((n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len)) == -1) {
       perror("failed on recvfrom");
